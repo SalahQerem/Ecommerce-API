@@ -2,10 +2,10 @@ import { Router } from "express";
 import fileUpload, { fileTypes } from "../../utils/multer.js";
 import { auth } from "../../middleware/auth.js";
 import { endPoint } from "./product.endPoint.js";
-import { AddProduct, getproduct } from "./product.controller.js";
+import { AddProduct, getProducts } from "./product.controller.js";
 
 const router = Router();
-router.get("/", getproduct);
+router.get("/", getProducts);
 router.post(
   "/",
   auth(endPoint.create),

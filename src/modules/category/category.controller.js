@@ -64,12 +64,11 @@ export const getCategoryById = async (req, res, next) => {
 };
 
 export const updateCategory = async (req, res, next) => {
+  const { id } = req.params;
+
   const category = await categoryModel.findById(id);
 
   if (!category) {
-    // return res
-    //   .status(404)
-    //   .json({ message: `category with id:${req.params.id} not found` });
     return next(new Error(`category with id: ${id} not found`, { cause: 404 }));
   }
 

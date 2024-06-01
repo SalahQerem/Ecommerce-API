@@ -21,7 +21,7 @@ router.put("/clearCart", auth(endpoints.clear), asyncHandler(clearCart));
 router.put("/:productId", auth(endpoints.delete), asyncHandler(removeFromCart));
 
 router.put(
-  "/updateQuantity/:productId",
+  "/update-quantity/:productId",
   auth(endpoints.update),
   asyncHandler(updateQuantity)
 );

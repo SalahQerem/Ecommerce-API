@@ -23,7 +23,7 @@ router.post(
 
 router.get("/", auth(endPoint.getAll), asyncHandler(getSubCategories));
 
-router.get("/getActive/:id", asyncHandler(getActiveSubCategory));
+router.get("/get-active/:id", asyncHandler(getActiveSubCategory));
 
 router.get("/getById/:id", asyncHandler(getSubCategoryById));
 

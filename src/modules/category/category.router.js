@@ -15,7 +15,7 @@ import { endPoint } from "./category.endPoint.js";
 
 const router = Router();
 
-router.use("/:id/sub-category", subCategoryRouter);
+router.use("/:categoryId/sub-category", subCategoryRouter);
 
 router.post(
   "/",
@@ -26,7 +26,7 @@ router.post(
 
 router.get("/", auth(endPoint.getAll), asyncHandler(getCategories));
 
-router.get("/active-category", asyncHandler(getActiveCategories));
+router.get("/active-categories", asyncHandler(getActiveCategories));
 
 router.get("/:id", asyncHandler(getCategoryById));
 

@@ -4,8 +4,9 @@ import productModel from "../../../DB/model/product.model.js";
 import subCategoryModel from "../../../DB/model/subCategory.model.js";
 import cloudinary from "../../utils/cloudinary.js";
 
-export const getproduct = async (req, res) => {
-  return res.json({ message: "success" });
+export const getProducts = async (req, res) => {
+  const products = await productModel.find({});
+  return res.status(200).json({ products });
 };
 
 export const AddProduct = async (req, res) => {
@@ -16,7 +17,6 @@ export const AddProduct = async (req, res) => {
     return res.status(404).json({ message: "category not found" });
   }
 
-  // const checkSubCategory = await subCategoryModel.findById(subCategoryId);
   const checkSubCategory = await subCategoryModel.findOne({
     _id: subCategoryId,
     categoryId,
