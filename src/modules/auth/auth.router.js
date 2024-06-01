@@ -5,7 +5,7 @@ import fileUpload, { fileTypes } from "../../utils/multer.js";
 import {
   confirmEmail,
   deleteInvalidConfirm,
-  forgotPassword,
+  resetPassword,
   getUsers,
   sendCode,
   signIn,
@@ -14,7 +14,7 @@ import {
 
 const router = Router();
 
-router.get("/getUser", auth(["User"]), getUsers);
+router.get("/getUsers", auth(["User"]), getUsers);
 
 router.post(
   "/signup",
@@ -28,7 +28,7 @@ router.post("/signin", asyncHandler(signIn));
 
 router.patch("/send-code", asyncHandler(sendCode));
 
-router.patch("/forgot-password", asyncHandler(forgotPassword));
+router.patch("/reset-password", asyncHandler(resetPassword));
 
 router.delete("/invalid-confirm", asyncHandler(deleteInvalidConfirm));
 

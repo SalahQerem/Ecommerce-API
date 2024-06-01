@@ -63,7 +63,7 @@ export const getSubCategories = async (req, res) => {
 };
 
 export const getActiveSubCategory = async (req, res, next) => {
-  const categoryId = req.params;
+  const categoryId = req.params.id;
   const { skip, limit } = pagination(req.query.page, req.query.limit);
 
   const subCategory = await subCategoryModel
@@ -129,7 +129,7 @@ export const updateSubCategory = async (req, res, next) => {
 };
 
 export const deleteSubCategory = async (req, res, next) => {
-  const subCategory = await subcategoryModel.findByIdAndDelete(req.params.id);
+  const subCategory = await subCategoryModel.findByIdAndDelete(req.params.id);
   if (!subCategory) {
     return next(new Error(`subcategroy not found`, { cause: 404 }));
   }
