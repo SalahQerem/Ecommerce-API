@@ -16,7 +16,7 @@ router.get("/", auth(endpoints.get), asyncHandler(getCart));
 
 router.post("/", auth(endpoints.create), asyncHandler(addToCart));
 
-router.put("/clearCart", auth(endpoints.clear), asyncHandler(clearCart));
+router.put("/clear-cart", auth(endpoints.clear), asyncHandler(clearCart));
 
 router.put("/:productId", auth(endpoints.delete), asyncHandler(removeFromCart));
 

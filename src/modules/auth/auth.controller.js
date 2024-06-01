@@ -5,7 +5,7 @@ import { sendEmail } from "../../utils/sendEmail.js";
 import { customAlphabet } from "nanoid";
 import cloudinary from "../../utils/cloudinary.js";
 
-export const getUsers = async (req, res) => {
+export const getUser = async (req, res) => {
   return res.json(req.user);
 };
 
@@ -260,7 +260,7 @@ mso-hide:all;
   });
 
   if (!createUser) {
-    return res.json({ message: "error while creat user" });
+    return next(new Error("error while creat user", { cause: 400 }));
   }
 
   return res
@@ -279,33 +279,35 @@ export const confirmEmail = async (req, res, next) => {
     { confirmEmail: true }
   );
   if (!user) {
-    return res
-      .status(400)
-      .json({ message: "invalid verify your email or your email is verified" });
+    return next(
+      new Error("invalid verify your email or your email is verified", {
+        cause: 400,
+      })
+    );
   }
 
   return res.redirect(process.env.FRONTENDURL);
 };
 
-export const signIn = async (req, res) => {
+export const signIn = async (req, res, next) => {
   const { email, password } = req.body;
 
   const user = await userModel.findOne({ email });
   if (!user) {
-    return res.status(400).json({ message: "email not found" });
+    return next(new Error("email not found", { cause: 400 }));
   }
 
   if (!user.confirmEmail) {
-    return res.status(400).json({ message: "please confirm your email" });
+    return next(new Error("please confirm your email", { cause: 400 }));
   }
 
   if (user.status === "Inactive") {
-    return res.status(400).json({ message: "Your account is inactive" });
+    return next(new Error("Your account is inactive", { cause: 400 }));
   }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) {
-    return res.status(400).json({ message: "Invalid Password" });
+    return next(new Error("Invalid Password", { cause: 400 }));
   }
 
   const token = jwt.sign(
@@ -342,21 +344,21 @@ export const sendCode = async (req, res) => {
   return res.redirect(process.env.FORGOTPASSWORDFROM);
 };
 
-export const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res, next) => {
   const { email, password, code } = req.body;
 
   const user = await userModel.findOne({ email });
   if (!user) {
-    return res.status(404).json({ message: "not register account" });
+    return next(new Error("not register account", { cause: 404 }));
   }
 
   if (user.sendCode != code) {
-    return res.status(400).json({ message: "invalid code" });
+    return next(new Error("invalid code", { cause: 400 }));
   }
 
   let match = await bcrypt.compare(password, user.password);
   if (match) {
-    return res.status(409).json({ message: "same password" });
+    return next(new Error("same password", { cause: 409 }));
   }
 
   user.password = await bcrypt.hash(password, parseInt(process.env.SALT_ROUND));

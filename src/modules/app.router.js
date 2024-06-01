@@ -4,6 +4,10 @@ import productRouter from "./product/product.router.js";
 import authRouter from "./auth/auth.router.js";
 import subCategoryRouter from "./subCategory/subCategory.router.js";
 import cartRouter from "./cart/cart.router.js";
+import couponRouter from "./coupon/coupon.router.js";
+import orderRouter from "./order/order.router.js";
+import reviewRouter from "./review/review.router.js";
+import usersRouter from "./user/user.router.js";
 import connectDB from "../../DB/connection.js";
 import { globalErrorHandler } from "../utils/errorHandling.js";
 
@@ -20,6 +24,10 @@ const initApp = (app, express) => {
   app.use("/sub-categories", subCategoryRouter);
   app.use("/products", productRouter);
   app.use("/cart", cartRouter);
+  app.use("/coupons", couponRouter);
+  app.use("/orders", orderRouter);
+  app.use("/reviews", reviewRouter);
+  app.use("/users", usersRouter);
   app.use("*", (req, res) => {
     return res.status(404).json({ message: "page not found" });
   });

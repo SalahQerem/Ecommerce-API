@@ -3,9 +3,14 @@ import fileUpload, { fileTypes } from "../../utils/multer.js";
 import { auth } from "../../middleware/auth.js";
 import { endPoint } from "./product.endPoint.js";
 import { AddProduct, getProducts } from "./product.controller.js";
+import reviewRouter from "./../review/review.router.js";
 
 const router = Router();
+
+router.use("/:productId/review", reviewRouter);
+
 router.get("/", getProducts);
+
 router.post(
   "/",
   auth(endPoint.create),

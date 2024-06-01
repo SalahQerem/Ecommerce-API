@@ -6,7 +6,7 @@ import {
   confirmEmail,
   deleteInvalidConfirm,
   resetPassword,
-  getUsers,
+  getUser,
   sendCode,
   signIn,
   signUp,
@@ -14,7 +14,7 @@ import {
 
 const router = Router();
 
-router.get("/getUsers", auth(["User"]), getUsers);
+router.get("/get-user", auth(["User"]), getUser);
 
 router.post(
   "/signup",
