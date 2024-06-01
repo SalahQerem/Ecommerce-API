@@ -5,7 +5,7 @@ export const getCart = async (req, res) => {
   return res.status(200).json({ cart });
 };
 
-export const addToCart = async (req, res) => {
+export const addToCart = async (req, res, next) => {
   const { productId } = req.body;
 
   const cart = await cartModel.findOne({ userId: req.user._id });
@@ -19,7 +19,7 @@ export const addToCart = async (req, res) => {
 
   for (let i = 0; i < cart.products.length; i++) {
     if (cart.products[i].productId == productId) {
-      return res.json({ message: "products already exists" });
+      return next(new Error("products already exists", { cause: 400 }));
     }
   }
 

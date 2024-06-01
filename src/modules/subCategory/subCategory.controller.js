@@ -4,20 +4,21 @@ import categoryModel from "../../../DB/model/category.model.js";
 import cloudinary from "../../utils/cloudinary.js";
 import { pagination } from "../../utils/pagination.js";
 
-export const addSubCategory = async (req, res) => {
+export const addSubCategory = async (req, res, next) => {
   const name = req.body.name.toLowerCase();
   const { categoryId } = req.body;
 
   const subCategory = await subCategoryModel.findOne({ name });
   if (subCategory) {
-    return res
-      .status(409)
-      .json({ message: `sub category with name:${name} already exists` });
+    return next(
+      new Error(`sub category with name:${name} already exists`, { cause: 409 })
+    );
   }
 
   const category = await categoryModel.findById(categoryId);
   if (!category) {
     return res.status(404).json({ message: "category not found" });
+    return next(new Error("email not found", { cause: 400 }));
   }
 
   const { secure_url, public_id } = await cloudinary.uploader.upload(
@@ -36,12 +37,10 @@ export const addSubCategory = async (req, res) => {
     updatedBy: req.user._id,
   });
 
-  return res
-    .status(201)
-    .json({ message: "success", subCategory: newSubCategory });
+  return res.status(201).json({ subCategory: newSubCategory });
 };
 
-export const getSubCategories = async (req, res) => {
+export const getSubCategories = async (req, res, next) => {
   const { skip, limit } = pagination(req.query.page, req.query.limit);
   const { categoryId } = req.params;
 
@@ -50,16 +49,14 @@ export const getSubCategories = async (req, res) => {
     .skip(skip)
     .limit(limit);
   if (!category) {
-    return res.status(404).json({ message: "category not found" });
+    return next(new Error("category not found", { cause: 400 }));
   }
 
   const subCategory = await subCategoryModel.find({ categoryId }).populate({
     path: "categoryId",
   });
 
-  return res
-    .status(200)
-    .json({ message: "success", count: subCategory.length, subCategory });
+  return res.status(200).json({ count: subCategory.length, subCategory });
 };
 
 export const getActiveSubCategory = async (req, res, next) => {
@@ -87,15 +84,15 @@ export const getSubCategoryById = async (req, res, next) => {
     return next(new Error(`subcategory not found`, { cause: 404 }));
   }
 
-  return res.status(200).json({ message: "success", subCategory });
+  return res.status(200).json({ subCategory });
 };
 
 export const updateSubCategory = async (req, res, next) => {
   const subCategory = await subCategoryModel.findById(req.params.id);
   if (!subCategory) {
-    return res
-      .status(404)
-      .json({ message: `invalid subcategory id ${req.params.id}` });
+    return next(
+      new Error(`invalid subcategory id ${req.params.id}`, { cause: 404 })
+    );
   }
 
   subCategory.name = req.body.name.toLowerCase();

@@ -4,7 +4,7 @@ import productModel from "../../../DB/model/product.model.js";
 import subCategoryModel from "../../../DB/model/subCategory.model.js";
 import cloudinary from "../../utils/cloudinary.js";
 
-export const getProducts = async (req, res) => {
+export const getProducts = async (req, res, next) => {
   const products = await productModel.find({});
   return res.status(200).json({ products });
 };
@@ -14,7 +14,7 @@ export const AddProduct = async (req, res) => {
 
   const checkCategory = await categoryModel.findById(categoryId);
   if (!checkCategory) {
-    return res.status(404).json({ message: "category not found" });
+    return next(new Error("category not found", { cause: 404 }));
   }
 
   const checkSubCategory = await subCategoryModel.findOne({
@@ -23,7 +23,7 @@ export const AddProduct = async (req, res) => {
   });
   if (subCategoryId) {
     if (!checkSubCategory) {
-      return res.status(404).json({ message: "Sub Category not found" });
+      return next(new Error("Sub Category not found", { cause: 404 }));
     }
   }
 
@@ -51,7 +51,7 @@ export const AddProduct = async (req, res) => {
 
   const product = await productModel.create(req.body);
   if (!product) {
-    return res.status(400).json({ message: "error while creating product" });
+    return next(new Error("error while creating product", { cause: 400 }));
   }
 
   return res.status(201).json({ product });
