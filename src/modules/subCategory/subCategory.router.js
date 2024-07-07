@@ -5,7 +5,7 @@ import { endPoint } from "./subCategory.endPoint.js";
 import fileUpload, { fileTypes } from "../../utls/multer.js";
 import { validation } from "../../middleware/validation.js";
 import * as validators from "./subCategory.validation.js";
-import * as subcategoryController from "./subcategory.controller.js";
+import * as subcategoryController from "./subCategory.controller.js";
 
 const router = Router({ mergeParams: true });
 
