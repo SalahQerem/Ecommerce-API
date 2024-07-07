@@ -1,13 +1,14 @@
 import slugify from "slugify";
 import categoryModel from "../../../DB/model/category.model.js";
-import cloudinary from "../../utils/cloudinary.js";
-import { pagination } from "../../utils/pagination.js";
+import cloudinary from "../../utls/cloudinary.js";
+import { pagination } from "../../utls/pagination.js";
+import { AppError } from "../../utls/AppError.js";
 
 export const AddCategory = async (req, res, next) => {
   const { name } = req.body;
 
   if (await categoryModel.findOne({ name: name.toLowerCase() })) {
-    return next(new Error(`category name already exists`, { cause: 409 }));
+    return next(new AppError(`category name already exists`, 409));
   }
 
   const { secure_url, public_id } = await cloudinary.uploader.upload(
@@ -57,7 +58,7 @@ export const getCategoryById = async (req, res, next) => {
   const category = await categoryModel.findById(id);
 
   if (!category) {
-    return next(new Error(`category not found`, { cause: 404 }));
+    return next(new AppError(`category not found`, 404));
   }
 
   return res.status(200).json({ category });
@@ -69,7 +70,7 @@ export const updateCategory = async (req, res, next) => {
   const category = await categoryModel.findById(id);
 
   if (!category) {
-    return next(new Error(`category with id: ${id} not found`, { cause: 404 }));
+    return next(new AppError(`invalid category id ${req.params.id}`, 404));
   }
 
   category.name = req.body.name.toLowerCase();
@@ -80,11 +81,7 @@ export const updateCategory = async (req, res, next) => {
       _id: { $ne: id },
     })
   ) {
-    return next(
-      new Error(`category with name: ${req.body.name} already exists`, {
-        cause: 409,
-      })
-    );
+    return next(new AppError(`category ${req.body.name} already exists`, 409));
   }
 
   category.slug = slugify(req.body.name);
@@ -109,7 +106,7 @@ export const deleteCategory = async (req, res, next) => {
   const category = await categoryModel.findByIdAndDelete(req.params.id);
 
   if (!category) {
-    return next(new Error(`categroy not found`, { cause: 404 }));
+    return next(new AppError(`categroy not found`, 404));
   }
 
   await cloudinary.uploader.destroy(category.image.public_id);

@@ -9,7 +9,6 @@ import orderRouter from "./order/order.router.js";
 import reviewRouter from "./review/review.router.js";
 import usersRouter from "./user/user.router.js";
 import connectDB from "../../DB/connection.js";
-import { globalErrorHandler } from "../utils/errorHandling.js";
 
 const initApp = (app, express) => {
   connectDB();
@@ -31,8 +30,9 @@ const initApp = (app, express) => {
   app.use("*", (req, res) => {
     return res.status(404).json({ message: "page not found" });
   });
-
-  app.use(globalErrorHandler);
+  app.use((err, req, res, next) => {
+    res.status(err.statusCode).json({ message: err.message });
+  });
 };
 
 export default initApp;

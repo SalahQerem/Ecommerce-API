@@ -1,17 +1,19 @@
 import { Router } from "express";
-import { addReview } from "./review.controller.js";
+import * as reviewController from "./review.controller.js";
 import { auth } from "../../middleware/auth.js";
-import { asyncHandler } from "../../utils/errorHandling.js";
+import { asyncHandler } from "../../utls/errorHandling.js";
 import { endpoints } from "./review.endPoint.js";
-import fileUpload, { fileTypes } from "../../utils/multer.js";
-
+import fileUpload, { fileTypes } from "../../utls/multer.js";
+import { validation } from "../../middleware/validation.js";
+import { createReviews } from "./review.validation.js";
 const router = Router({ mergeParams: true });
 
 router.post(
   "/",
   auth(endpoints.create),
   fileUpload(fileTypes.image).single("image"),
-  asyncHandler(addReview)
+  validation(createReviews),
+  asyncHandler(reviewController.addReview)
 );
 
 export default router;
