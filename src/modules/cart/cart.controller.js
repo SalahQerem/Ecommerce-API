@@ -1,4 +1,5 @@
 import cartModel from "../../../DB/model/cart.model.js";
+import { AppError } from "../../utls/AppError.js";
 
 export const getCart = async (req, res) => {
   const cart = await cartModel.findOne({ userId: req.user._id });
@@ -7,26 +8,22 @@ export const getCart = async (req, res) => {
 
 export const addToCart = async (req, res, next) => {
   const { productId } = req.body;
-
   const cart = await cartModel.findOne({ userId: req.user._id });
   if (!cart) {
     const newCart = await cartModel.create({
       userId: req.user._id,
       products: { productId },
     });
-    return res.status(201).json({ cart: newCart });
+    return res.json({ message: "success", carts: newCart });
   }
-
   for (let i = 0; i < cart.products.length; i++) {
     if (cart.products[i].productId == productId) {
-      return next(new Error("products already exists", { cause: 400 }));
+      return next(new AppError(`products already exists`, 409));
     }
   }
-
   cart.products.push({ productId: productId });
   await cart.save();
-
-  return res.status(201).json({ cart });
+  return res.json({ message: "success", cart });
 };
 
 export const removeFromCart = async (req, res) => {

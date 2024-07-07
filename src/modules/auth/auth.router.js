@@ -1,35 +1,49 @@
 import { Router } from "express";
 import { auth } from "../../middleware/auth.js";
-import { asyncHandler } from "../../utils/errorHandling.js";
-import fileUpload, { fileTypes } from "../../utils/multer.js";
-import {
-  confirmEmail,
-  deleteInvalidConfirm,
-  resetPassword,
-  getUser,
-  sendCode,
-  signIn,
-  signUp,
-} from "./auth.controller.js";
-
+import * as AuthController from "./auth.controller.js";
+import { asyncHandler } from "../../utls/errorHandling.js";
+import fileUpload, { fileTypes } from "../../utls/multer.js";
+import { checkEmail } from "../../middleware/checkEmail.js";
+import { validation } from "../../middleware/validation.js";
+import * as validators from "./auth.validation.js";
 const router = Router();
 
-router.get("/get-user", auth(["User"]), getUser);
+router.get("/get-user", auth(["User"]), asyncHandler(AuthController.getUser));
 
 router.post(
   "/signup",
-  fileUpload(fileTypes.image).single("image"),
-  asyncHandler(signUp)
+  checkEmail,
+  validation(validators.RegisterSchema),
+  asyncHandler(AuthController.signUp)
+);
+router.post(
+  "/excel",
+  fileUpload(fileTypes.excel).single("excel"),
+  asyncHandler(AuthController.addUserExcel)
+);
+router.get("/confirm-email/:token", asyncHandler(AuthController.confirmEmail));
+
+router.post(
+  "/signin",
+  validation(validators.LogInSchema),
+  asyncHandler(AuthController.signIn)
 );
 
-router.get("/confirm-email/:token", asyncHandler(confirmEmail));
+router.patch(
+  "/send-code",
+  validation(validators.sendCodevalidation),
+  asyncHandler(AuthController.sendCode)
+);
 
-router.post("/signin", asyncHandler(signIn));
+router.patch(
+  "/reset-password",
+  validation(validators.forgotPasswordvalid),
+  asyncHandler(AuthController.resetPassword)
+);
 
-router.patch("/send-code", asyncHandler(sendCode));
-
-router.patch("/reset-password", asyncHandler(resetPassword));
-
-router.delete("/invalid-confirm", asyncHandler(deleteInvalidConfirm));
+router.delete(
+  "/invalid-confirm",
+  asyncHandler(AuthController.deleteInvalidConfirm)
+);
 
 export default router;

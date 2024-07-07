@@ -3,97 +3,130 @@ import couponModel from "../../../DB/model/coupn.model.js";
 import orderModel from "../../../DB/model/order.model.js";
 import productModel from "../../../DB/model/product.model.js";
 import userModel from "../../../DB/model/user.model.js";
-
+import { AppError } from "../../utls/AppError.js";
+import Stripe from "stripe";
+import createInvoice from "../../utls/pdf.js";
+const stripe = new Stripe(process.env.sekStrip);
 export const addOrder = async (req, res, next) => {
+  //check carts
   const { couponName } = req.body;
-
   const cart = await cartModel.findOne({ userId: req.user._id });
-  if (!cart || cart.products.length === 0) {
-    return next(new Error(`cart is empty`, { cause: 400 }));
-  }
 
+  if (!cart || cart.products.length === 0) {
+    return next(new AppError(`cart is empty`, 400));
+  }
   req.body.products = cart.products;
 
   if (couponName) {
     const coupon = await couponModel.findOne({ name: couponName });
-
     if (!coupon) {
-      return next(new Error(`coupon not found`, { cause: 404 }));
+      return next(new AppError(`coupon not found`, 404));
     }
-
     const currentDate = new Date();
     if (coupon.expireDate <= currentDate) {
-      return next(new Error(`this coupon has expried`, { cause: 400 }));
+      return next(new AppError(`this coupon has expried`, 400));
     }
-
     if (coupon.usedBy.includes(req.user._id)) {
-      return next(new Error(`coupon already used`, { cause: 409 }));
+      return next(new AppError(`coupon already used`, 409));
     }
-
     req.body.coupon = coupon;
   }
 
   let subTotals = 0;
   let finalProductList = [];
   for (let product of req.body.products) {
+    console.log("Product ID:", product.productId);
+    console.log("Requested Quantity:", product.quantity);
     const checkProduct = await productModel.findOne({
       _id: product.productId,
       stock: { $gte: product.quantity },
     });
 
     if (!checkProduct) {
-      return next(new Error(`product quantity not available`));
+      return next(new AppError(`product quantity not available`, 400));
     }
-
     product = product.toObject();
-
     product.name = checkProduct.name;
     product.unitPrice = checkProduct.price;
     product.discount = checkProduct.discount;
     product.finalPrice = product.quantity * checkProduct.finalPrice;
     subTotals += product.finalPrice;
-
     finalProductList.push(product);
   }
 
   const user = await userModel.findById(req.user._id);
-  if (!req.body.address) {
-    req.body.address = user.address;
+  if (!req.body.Address) {
+    req.body.Address = user.Address;
   }
-  if (!req.body.phone) {
-    req.body.phone = user.phone;
+  if (!req.body.phoneNumber) {
+    req.body.phoneNumber = user.phoneNumber;
   }
-
+  /*
+const session = await stripe.checkout.sessions.create({
+  line_items: [
+      {
+      
+        price_data:{
+          currency:'USD',
+          unit_amount:subTotals - (subTotals * (( req.body.coupon?.amount || 0 )) / 100),
+          product_data:{
+              name:user.userName
+          }
+        } ,
+        quantity: 1,
+      }
+    ],
+    mode: 'payment',
+    success_url: `http://www.facebook.com`,
+    cancel_url: `http://www.youtub.com`,
+})
+return res.json(session)
+*/
   const order = await orderModel.create({
     userId: req.user._id,
     products: finalProductList,
     finalPrice: subTotals - (subTotals * (req.body.coupon?.amount || 0)) / 100,
-    address: req.body.address,
-    phoneNumber: req.body.phone,
+    Address: req.body.Address,
+    phoneNumber: req.body.phoneNumber,
   });
+  if (order) {
+    const invoice = {
+      shipping: {
+        name: user.userName,
+        address: order.Address,
+        phone: order.phoneNumber,
+      },
+      items: order.products,
+      subtotal: order.finalPrice,
 
-  for (const product of req.body.products) {
-    await productModel.updateOne(
-      { _id: product.productId },
-      { $inc: { stock: -product.quantity } }
-    );
-  }
+      invoice_nr: order._id,
+    };
 
-  if (req.body.coupon) {
-    await couponModel.updateOne(
-      { _id: req.body.coupon._id },
-      { $addToSet: { usedBy: req.user._id } }
-    );
-  }
+    createInvoice(invoice, "invoice.pdf");
 
-  await cartModel.updateOne(
-    { userId: req.user._id },
-    {
-      products: [],
+    for (const product of req.body.products) {
+      await productModel.updateOne(
+        { _id: product.productId },
+        { $inc: { stock: -product.quantity } }
+      );
     }
-  );
 
-  return res.status(201).json({ order });
+    if (req.body.coupon) {
+      await couponModel.updateOne(
+        { _id: req.body.coupon._id },
+        { $addToSet: { usedBy: req.user._id } }
+      );
+    }
+
+    await cartModel.updateOne(
+      { userId: req.user._id },
+      {
+        products: [],
+      }
+    );
+  }
+
+  return res.status(201).json({ message: "success", order });
 };
 
 export const getOrders = async (req, res) => {
@@ -121,7 +154,7 @@ export const changeStatus = async (req, res, next) => {
 
   const order = await orderModel.findById(orderId);
   if (!order) {
-    return next(new Error("order not found", { cause: 404 }));
+    return next(new AppError(`order not found`, 404));
   }
 
   order.status = status;
